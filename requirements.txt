@@ -1,2 +1,4 @@
 flask
 gunicorn
+
+python-3.10
