@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Input Nama</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f4f4f4;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+        input {
+            padding: 10px;
+            width: 200px;
+            margin: 10px 0;
+        }
+        button {
+            padding: 10px;
+            background: blue;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        ul {
+            list-style: none;
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Masukkan Nama</h2>
+        <input type="text" id="nameInput" placeholder="Masukkan nama...">
+        <button onclick="submitName()">Simpan</button>
+        <h3>Daftar Nama:</h3>
+        <ul id="nameList"></ul>
+    </div>
+    <script>
+        document.addEventListener("DOMContentLoaded", fetchNames);
+
+        function submitName() {
+            let name = document.getElementById("nameInput").value;
+            if (name.trim() === "") {
+                alert("Nama tidak boleh kosong!");
+                return;
+            }
+
+            fetch("/submit", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ name: name })
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert(data.message);
+                document.getElementById("nameInput").value = "";
+                fetchNames();
+            })
+            .catch(error => console.error("Error:", error));
+        }
+
+        function fetchNames() {
+            fetch("/names")
+            .then(response => response.json())
+            .then(names => {
+                let nameList = document.getElementById("nameList");
+                nameList.innerHTML = "";
+                names.forEach(name => {
+                    let li = document.createElement("li");
+                    li.textContent = name;
+                    nameList.appendChild(li);
+                });
+            })
+            .catch(error => console.error("Error:", error));
+        }
+    </script>
+</body>
+</html>
