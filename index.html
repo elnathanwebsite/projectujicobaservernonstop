@@ -3,87 +3,108 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Input Nama</title>
+    <title>Input Data</title>
     <style>
         body {
             font-family: Arial, sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            background-color: #f4f4f4;
-        }
-        .container {
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
             text-align: center;
         }
-        input {
-            padding: 10px;
-            width: 200px;
-            margin: 10px 0;
+        form {
+            width: 300px;
+            margin: auto;
+            display: flex;
+            flex-direction: column;
         }
-        button {
+        input, select, button {
+            margin: 5px 0;
             padding: 10px;
-            background: blue;
-            color: white;
-            border: none;
-            cursor: pointer;
+            font-size: 16px;
         }
-        ul {
-            list-style: none;
-            padding: 0;
+        table {
+            margin: auto;
+            width: 50%;
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid black;
+            padding: 10px;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h2>Masukkan Nama</h2>
-        <input type="text" id="nameInput" placeholder="Masukkan nama...">
-        <button onclick="submitName()">Simpan</button>
-        <h3>Daftar Nama:</h3>
-        <ul id="nameList"></ul>
-    </div>
+
+    <h2>Form Input Data</h2>
+    <form id="dataForm">
+        <input type="text" id="nama" placeholder="Nama" required>
+        <input type="number" id="umur" placeholder="Umur" required>
+        <select id="gender" required>
+            <option value="" disabled selected>Pilih Gender</option>
+            <option value="Laki-laki">Laki-laki</option>
+            <option value="Perempuan">Perempuan</option>
+        </select>
+        <button type="submit">Simpan</button>
+    </form>
+
+    <h2>Data yang Disimpan</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Nama</th>
+                <th>Umur</th>
+                <th>Gender</th>
+            </tr>
+        </thead>
+        <tbody id="dataTable"></tbody>
+    </table>
+
     <script>
-        document.addEventListener("DOMContentLoaded", fetchNames);
+        // Fungsi untuk mengirim data ke backend
+        document.getElementById("dataForm").addEventListener("submit", function(event) {
+            event.preventDefault();
 
-        function submitName() {
-            let name = document.getElementById("nameInput").value;
-            if (name.trim() === "") {
-                alert("Nama tidak boleh kosong!");
-                return;
-            }
+            let nama = document.getElementById("nama").value;
+            let umur = document.getElementById("umur").value;
+            let gender = document.getElementById("gender").value;
 
-            fetch("/submit", {
+            fetch("http://127.0.0.1:5000/save_data", {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ name: name })
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ nama, umur, gender })
             })
             .then(response => response.json())
             .then(data => {
-                alert(data.message);
-                document.getElementById("nameInput").value = "";
-                fetchNames();
+                alert("Data berhasil disimpan!");
+                loadData(); // Reload data setelah menyimpan
             })
             .catch(error => console.error("Error:", error));
+
+            document.getElementById("dataForm").reset(); // Reset form
+        });
+
+        // Fungsi untuk mengambil data dari backend
+        function loadData() {
+            fetch("http://127.0.0.1:5000/get_data")
+                .then(response => response.json())
+                .then(data => {
+                    let tableBody = document.getElementById("dataTable");
+                    tableBody.innerHTML = ""; // Hapus isi tabel sebelum memperbarui
+                    data.forEach(item => {
+                        let row = `<tr>
+                            <td>${item.nama}</td>
+                            <td>${item.umur}</td>
+                            <td>${item.gender}</td>
+                        </tr>`;
+                        tableBody.innerHTML += row;
+                    });
+                })
+                .catch(error => console.error("Error:", error));
         }
 
-        function fetchNames() {
-            fetch("/names")
-            .then(response => response.json())
-            .then(names => {
-                let nameList = document.getElementById("nameList");
-                nameList.innerHTML = "";
-                names.forEach(name => {
-                    let li = document.createElement("li");
-                    li.textContent = name;
-                    nameList.appendChild(li);
-                });
-            })
-            .catch(error => console.error("Error:", error));
-        }
+        // Panggil loadData saat halaman pertama kali dimuat
+        loadData();
     </script>
+
 </body>
 </html>
