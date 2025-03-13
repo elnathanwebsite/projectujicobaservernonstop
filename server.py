@@ -39,3 +39,24 @@ if __name__ == "__main__":
     app.run(debug=True)
 if __name__ == "__main__":
     app.run(host="0.0.0.0")
+    from threading import Thread
+from flask import Flask
+
+app = Flask(__name__)
+
+@app.route('/')
+def home():
+    return "Server Flask Aktif!"
+
+def keep_alive():
+    import requests
+    while True:
+        requests.get("https://my-flask-app.repl.co")
+        time.sleep(300)  # Setiap 5 menit
+
+# Jalankan keep_alive() di background
+Thread(target=keep_alive, daemon=True).start()
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=5000)
+
