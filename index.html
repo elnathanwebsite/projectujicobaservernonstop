@@ -85,7 +85,7 @@
 
         // Fungsi untuk mengambil data dari backend
         function loadData() {
-            fetch("https://projectujicobaservernonstop.vercel.app/")
+            fetch("http://localhost:5000/get_data")
                 .then(response => response.json())
                 .then(data => {
                     let tableBody = document.getElementById("dataTable");
