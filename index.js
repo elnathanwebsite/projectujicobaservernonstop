@@ -46,3 +46,7 @@ app.post('/data', (req, res) => {
 
 // **Hapus app.listen() dan tambahkan ini**
 module.exports = app;
+app.get('/', (req, res) => {
+    res.send({ message: "Server berjalan dengan baik! Silakan akses /data untuk melihat data." });
+});
+
