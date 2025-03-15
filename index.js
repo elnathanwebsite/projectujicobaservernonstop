@@ -1,52 +1,46 @@
-const fs = require('fs');
 const express = require('express');
+const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 
 const app = express();
-const filePath = 'data.json';
+const port = 3000;
+
+// Koneksi ke MongoDB Atlas
+mongoose.connect('mongodb+srv://username:password@cluster.mongodb.net/database_name', {
+    useNewUrlParser: true,
+    useUnifiedTopology: true
+});
+
+// Buat model data
+const DataSchema = new mongoose.Schema({
+    nama: String,
+    umur: Number,
+    alamat: String
+});
+const Data = mongoose.model('Data', DataSchema);
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-// Fungsi untuk membaca data dari file JSON
-const readData = () => {
-    try {
-        const data = fs.readFileSync(filePath, 'utf8');
-        return JSON.parse(data);
-    } catch (err) {
-        return [];
-    }
-};
-
-// Fungsi untuk menulis data ke file JSON
-const writeData = (data) => {
-    fs.writeFileSync(filePath, JSON.stringify(data, null, 2));
-};
-
-// Endpoint untuk mendapatkan data
-app.get('/data', (req, res) => {
-    res.json(readData());
+// Endpoint mendapatkan data
+app.get('/data', async (req, res) => {
+    const allData = await Data.find();
+    res.json(allData);
 });
 
-// Endpoint untuk menambahkan data dari form
-app.post('/data', (req, res) => {
+// Endpoint menambahkan data
+app.post('/data', async (req, res) => {
     const { nama, umur, alamat } = req.body;
-    
     if (!nama || !umur || !alamat) {
         return res.status(400).json({ message: 'Harap lengkapi semua data!' });
     }
-    
-    const data = readData();
-    const newData = { nama, umur: parseInt(umur), alamat };
-    data.push(newData);
-    writeData(data);
+
+    const newData = new Data({ nama, umur, alamat });
+    await newData.save();
     
     res.json({ message: 'Data berhasil disimpan!', data: newData });
 });
 
-// **Hapus app.listen() dan tambahkan ini**
-module.exports = app;
-app.get('/', (req, res) => {
-    res.send({ message: "Server berjalan dengan baik! Silakan akses /data untuk melihat data." });
+app.listen(port, () => {
+    console.log(`Server berjalan di http://localhost:${port}`);
 });
-
